@@ -3,10 +3,13 @@ import { Link, useParams, useHistory } from 'react-router-dom';
 
 import axios from 'axios';
 
+import DeleteMovieModal from './DeleteMovieModal';
+
 const Movie = (props) => {
     const { addToFavorites } = props;
 
     const [movie, setMovie] = useState('');
+    const [showModal, setShowModal] = useState(false);
 
     const { id } = useParams();
     const { push } = useHistory();
@@ -23,15 +26,28 @@ const Movie = (props) => {
 
     const handleDeleteClick = () => {
         console.log("clicked delete");
+        setShowModal(true);
+    }
+
+    const handleDelete = () => {
         axios.delete(`http://localhost:5001/api/movies/${id}`)
-            .then(res=> {
-                console.log(res);
-                props.deleteMovie(res.data);
-                push('/movies');
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        .then(res=> {
+            console.log(res);
+            props.deleteMovie(res.data);
+            push('/movies');
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+
+    const handleModalConfirm = (e) => {
+        e.preventDefault();
+        handleDelete();
+    }
+
+    const handleModalCancel = () => {
+        setShowModal(false);
     }
 
     return(<div className="modal-page col">
@@ -71,6 +87,7 @@ const Movie = (props) => {
                 </div>
             </div>
         </div>
+        { showModal && <DeleteMovieModal handleModalConfirm={handleModalConfirm} handleModalCancel={handleModalCancel} /> }
     </div>);
 }
 
