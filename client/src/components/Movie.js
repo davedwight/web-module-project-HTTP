@@ -3,16 +3,19 @@ import { Link, useParams, useHistory } from 'react-router-dom';
 
 import axios from 'axios';
 
+import DeleteMovieModal from './DeleteMovieModal';
+
 const Movie = (props) => {
     const { addToFavorites } = props;
 
     const [movie, setMovie] = useState('');
+    const [showModal, setShowModal] = useState(false);
 
     const { id } = useParams();
     const { push } = useHistory();
 
     useEffect(()=>{
-        axios.get(`http://localhost:5000/api/movies/${id}`)
+        axios.get(`http://localhost:5001/api/movies/${id}`)
             .then(res=>{
                 setMovie(res.data);
             })
@@ -20,6 +23,32 @@ const Movie = (props) => {
                 console.log(err.response);
             })
     }, [id]);
+
+    const handleDeleteClick = () => {
+        console.log("clicked delete");
+        setShowModal(true);
+    }
+
+    const handleDelete = () => {
+        axios.delete(`http://localhost:5001/api/movies/${id}`)
+        .then(res=> {
+            console.log(res);
+            props.deleteMovie(res.data);
+            push('/movies');
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+
+    const handleModalConfirm = (e) => {
+        e.preventDefault();
+        handleDelete();
+    }
+
+    const handleModalCancel = () => {
+        setShowModal(false);
+    }
 
     return(<div className="modal-page col">
         <div className="modal-dialog">
@@ -52,12 +81,13 @@ const Movie = (props) => {
                         <section>
                             <span className="m-2 btn btn-dark">Favorite</span>
                             <Link to={`/movies/edit/${movie.id}`} className="m-2 btn btn-success">Edit</Link>
-                            <span className="delete"><input type="button" className="m-2 btn btn-danger" value="Delete"/></span>
+                            <span onClick={handleDeleteClick} className="delete"><input type="button" className="m-2 btn btn-danger" value="Delete"/></span>
                         </section>
                     </div>
                 </div>
             </div>
         </div>
+        { showModal && <DeleteMovieModal handleModalConfirm={handleModalConfirm} handleModalCancel={handleModalCancel} /> }
     </div>);
 }
 
